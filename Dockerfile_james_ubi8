@@ -1,0 +1,45 @@
+FROM ubi8:latest
+
+#Information Data
+LABEL author="Ivan.Warlock@ibm.com"
+LABEL maintainer="Ivan.Warlock@ibm.com"
+LABEL name=""
+
+#ENV Variables
+ENV PATHTOJAMES /home/james/
+ENV JAVA_HOME /home/java/jdk-11.0.13+8
+ENV VAR_PATH /home/var/
+ENV SIEVE_PATH /home/sieve
+#System
+RUN dnf update -y
+RUN dnf install -y \
+    unzip \
+    sudo
+
+COPY . james-2.3.2.1
+RUN chmod 775 -R *james-*
+RUN mkdir ${PATHTOJAMES}
+RUN cp -R  *james-*/* ${PATHTOJAMES}
+
+RUN curl public.dhe.ibm.com/ibmdl/export/pub/systems/cloud/runtimes/java/11.0.13.0/linux/x86_64/ibm-semeru-certified-jdk_x64_linux_11.0.13.0-archive.bin --output ibm-java-sdk-11.bin
+RUN chmod +x ibm-java-sdk-11.bin
+RUN (echo "4"; echo "1";  echo -ne '\n'; echo -ne '\n'; echo -ne '\n'; echo -ne '\n') | ./ibm-java-sdk-11.bin
+RUN mkdir /home/java/
+RUN ls
+RUN mv *ibm-semeru*/* /home/java/
+RUN rm -r *ibm-semeru*
+
+RUN mkdir ${SIEVE_PATH}
+RUN mkdir ${VAR_PATH}
+RUN chown -R 1001 ${PATHTOJAMES}
+RUN chown -R 1001 ${VAR_PATH}
+RUN chown -R 1001 ${SIEVE_PATH}
+RUN chgrp -R 0 ${PATHTOJAMES} && chmod -R g+rwX ${PATHTOJAMES}
+RUN chgrp -R 0 ${VAR_PATH} && chmod -R g+rwX ${VAR_PATH}
+RUN chgrp -R 0 ${SIEVE_PATH} && chmod -R g+rwX ${SIEVE_PATH}
+RUN chgrp -R 0 ${JAVA_HOME} && chmod -R g+rwX ${JAVA_HOME}
+
+EXPOSE 4555 4556 4557 4558
+
+WORKDIR ${PATHTOJAMES}
+ENTRYPOINT ["/home/james/bin/run.sh"]

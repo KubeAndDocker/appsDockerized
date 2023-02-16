@@ -1,0 +1,30 @@
+FROM ubi8:latest
+
+#Prepare Utils
+
+RUN dnf update -y && dnf install \
+make \
+systemd-libs \
+systemd-udev \
+systemd-pam \
+gcc \
+gcc-c++ \
+openssl-devel \
+bzip2-devel \
+nano \
+nc \
+java \
+net-tools \
+telnet \
+wget -y
+
+#Copy The MB App
+COPY /App /App
+
+RUN chgrp -R 0 /App && chmod -R g+rwX /App
+
+WORKDIR /App
+
+EXPOSE 3000
+
+CMD java -jar /App/metabase.jar 

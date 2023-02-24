@@ -1,0 +1,44 @@
+FROM ubi8:latest
+
+LABEL maintainer="Ivan.Warlock@ibm.com"
+ARG PATH_AUTOMATION=/home/automation
+
+RUN dnf update -y && dnf install \
+make \
+sudo \
+systemd-libs \
+systemd-udev \
+systemd-pam \
+gcc \
+gcc-c++ \
+openssl-devel \
+bzip2-devel \
+nano \
+nc \
+firefox \
+java \
+wget -y
+
+############################################Python#####################################################
+RUN wget -O /opt/Python-3.7.9.tgz https://www.python.org/ftp/python/3.7.9/Python-3.7.9.tgz && mkdir /opt/Python-3.7.9 && tar zxvf /opt/Python-3.7.9.tgz -C /opt && rm /opt/Python-3.7.9.tgz && cd /opt/Python-3.7.9 && ./configure --enable-optimizations && make altinstall
+RUN pip3.7 install --upgrade pip
+#It can be replaced by pip install -r requirement.txt
+RUN pip3.7 install pytest \
+        selenium \
+        python-dotenv \
+        allure-pytest
+
+RUN mkdir $PATH_AUTOMATION
+#Copy all project to Path Automation Directory
+COPY . $PATH_AUTOMATION
+
+WORKDIR $PATH_AUTOMATION
+
+EXPOSE 43633
+#Export for Allure
+ENV PATH="${PATH}:/home/automation/allure-2.10.0/bin"
+#Export for geckodriver
+ENV PATH="${PATH}:/home/automation/drivers"
+
+
+ENTRYPOINT ["python3.7","Potts.py"]
